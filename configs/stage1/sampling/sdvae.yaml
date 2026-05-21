@@ -1,0 +1,6 @@
+stage_1:
+  target: stage1.VAE
+  params:
+    vae_type: sdvae-ema
+    resolution: 256
+    sample_mode: mode

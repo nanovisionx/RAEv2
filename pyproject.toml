@@ -1,0 +1,70 @@
+[project]
+name = "RAEv2"
+version = "0.1.0"
+description = "Improved Baselines with Representation Autoencoders"
+requires-python = ">=3.10,<3.14"
+dependencies = [
+  "accelerate==0.23.0",
+  "datasets==4.4.2",
+  "dictdot==1.5.1",
+  "diffusers==0.36.0",
+  "einops==0.8.1",
+  "hf-transfer>=0.1.9",
+  "numpy==2.2.6",
+  "omegaconf==2.3.0",
+  "opencv-python==4.13.0.92",
+  "pandas==2.3.3",
+  "pillow==12.0.0",
+  "protobuf==6.33.2",
+  "pyyaml==6.0.3",
+  "safetensors==0.7.0",
+  "scipy==1.15.3",
+  "sentencepiece==0.2.1",
+  "tabulate==0.10.0",
+  "termcolor",
+  "timm>=1.0.16",
+  "torch==2.10.0+cu128",
+  "torch-fidelity==0.3.0",
+  "torchmetrics==1.8.2",
+  "torchvision==0.25.0",
+  "tqdm==4.67.1",
+  "transformers==4.57.1",
+  "wandb==0.23.1",
+  "webdataset==1.0.2",
+  "lpips==0.1.4",
+  "gram-newton-schulz",
+  "dpg-evaluator",
+  "geneval-evaluator",
+  "t2v-metrics",
+  "fd-evaluator",
+  "clip",
+]
+
+[dependency-groups]
+dev = [
+  "ipython>=8.0",
+  "jupyterlab>=4.0",
+  "pre-commit>=4.0",
+  "seaborn==0.13.2",
+  "matplotlib==3.10.8",
+  "ruff>=0.15.7",
+]
+
+[tool.uv]
+environments = [
+    "sys_platform == 'linux'",
+]
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cu128" }]
+gram-newton-schulz = { git = "ssh://git@github.com/nanovisionx/gmuon.git", branch = "main" }
+dpg-evaluator     = { git = "ssh://git@github.com/nanovisionx/nanogen-evals.git", subdirectory = "dpgbench",     branch = "main" }
+geneval-evaluator = { git = "ssh://git@github.com/nanovisionx/nanogen-evals.git", subdirectory = "geneval",      branch = "main" }
+t2v-metrics       = { git = "ssh://git@github.com/nanovisionx/nanogen-evals.git", subdirectory = "t2v_metrics",  branch = "main" }
+fd-evaluator      = { git = "ssh://git@github.com/nanovisionx/nanogen-evals.git", subdirectory = "fd_evaluator", branch = "main" }
+clip              = { git = "https://github.com/openai/CLIP.git" }
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true

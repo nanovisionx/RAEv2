@@ -1,0 +1,21 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-yaml
+        files: ^(configs|environment)/.*\.(yml|yaml)$
+      - id: check-added-large-files
+        args: ["--maxkb=60000"]
+
+  # Use "language: system" to avoid pinning a ruff-pre-commit revision.
+  # Install via `uv sync` (pulls ruff from pyproject.toml).
+  - repo: local
+    hooks:
+      - id: ruff
+        name: ruff
+        entry: ruff check
+        language: system
+        files: ^(src|configs|scripts)/.*\.py$
+        require_serial: true

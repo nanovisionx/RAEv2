@@ -1,0 +1,101 @@
+stage_1:
+  target: stage1.RAE
+  params:
+    encoder_name: 'dinov3mls-vit-l16[layers=1.2.3.4.5.6.7.8.9.10.11.12.13.14.15.16.17.18.19.20.21.22.23]'
+    resolution: 256
+    decoder_config_path: 'configs/decoder/ViTXL'
+    pretrained_decoder_path: 'pretrained_models/stage1/imagenet/dinov3l-k23/decoder.pt'
+    noise_tau: 0.0
+    normalization_stat_path: 'pretrained_models/stage1/imagenet/dinov3l-k23/stats.pt'
+stage_2:
+  target: stage2.models.DDT.DiTwDDTHeadIG
+  params:
+    input_size: 16
+    patch_size: [1, 1]
+    in_channels: 1024
+    hidden_size: [1152, 2048]
+    depth: [28, 2]
+    num_heads: [16, 16]
+    mlp_ratio: 4.0
+    base_model_depth: 8
+conditioning:
+  type: "nwm"
+  cfg_dropout_prob: 0.1
+  arch:
+    num_t_tokens: 4
+    n_action_tokens: 4
+transport:
+  prediction: 'x'
+  time_dist_type: 'logit-normal_0_1'
+sampler:
+  num_steps: 50
+guidance:
+  cfg:
+    scale: 1.0
+    t_min: 0.0
+    t_max: 1.0
+dataset:
+  target: 'nwm'
+  type: 'hf'
+  data_dir: "./data/recon"
+  split: "train"
+  condition_type: "nwm"
+  shared_tmpdir: "~/tmp"
+  params:
+    data_dir: "./data/recon"
+    split: "train"
+    context_size: 4
+    len_traj_pred: 8
+    metric_waypoint_spacing: 0.25
+training:
+  epochs: 80
+  global_batch_size: 256
+  grad_accum_steps: 1
+  ema_decay: 0.9995
+  num_workers: 4
+  log_interval: 100
+  checkpoint_interval: 5
+  sample_every: 5000
+  clip_grad: 1.0
+  global_seed: 42
+  optimizer:
+    type: gmuon
+    lr: 2.0e-4
+    momentum: 0.95
+    nesterov: true
+    ns_coefficients_preset: POLAR_EXPRESS_COEFFICIENTS
+    ns_use_kernels: false
+    weight_decay: 0.0
+  scheduler:
+    type: linear
+    warmup_epochs: 40
+    decay_end_epoch: 80
+    base_lr: 2.0e-4
+    final_lr: 2.0e-5
+    warmup_from_zero: false
+  image_size: 256
+eval:
+  eval_interval: 5000
+  eval_model: false
+  eval_dir: results/stage2/eval
+  datasets:
+    recon:
+      target: 'nwm'
+      type: 'hf'
+      data_dir: './data/recon'
+      split: 'val'
+      condition_type: 'nwm'
+      reference_npz: './data/recon/recon_val_stats.npz'
+      metrics: ['fid', 'lpips']
+      num_samples: 10000
+      params:
+        data_dir: './data/recon'
+        split: 'val'
+        context_size: 4
+        len_traj_pred: 8
+        metric_waypoint_spacing: 0.25
+misc:
+  latent_size: [1024, 16, 16]
+  num_classes: 1000
+  time_dist_shift_dim: 262144
+  time_dist_shift_base: 4096

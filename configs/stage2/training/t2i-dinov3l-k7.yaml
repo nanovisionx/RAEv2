@@ -1,0 +1,109 @@
+stage_1:
+  target: stage1.RAE
+  params:
+    encoder_name: 'dinov3mls-vit-l16[layers=11.13.15.17.19.21.23]'
+    resolution: 256
+    decoder_config_path: 'configs/decoder/ViTXL'
+    pretrained_decoder_path: 'pretrained_models/stage1/imagenet/dinov3l-k7/decoder.pt'
+    noise_tau: 0.0
+    normalization_stat_path: 'pretrained_models/stage1/imagenet/dinov3l-k7/stats.pt'
+
+stage_2:
+  target: stage2.models.DDT.DiTwDDTHeadIG
+  params:
+    input_size: 16
+    patch_size: [1, 1]
+    in_channels: 1024
+    hidden_size: [1440, 2048]
+    depth: [28, 2]
+    num_heads: [20, 16]
+    mlp_ratio: 4.0
+    base_model_depth: 8
+
+conditioning:
+  type: "text"
+  cfg_dropout_prob: 0.1
+  arch:
+    num_t_tokens: 4
+    num_c_tokens: 256
+  text_encoder:
+    model_name: "Qwen/Qwen3-0.6B"
+    max_length: 256
+
+transport:
+  prediction: 'x'
+  time_dist_type: 'logit-normal_0_1'
+
+sampler:
+  num_steps: 50
+
+guidance:
+  cfg:
+    scale: 6.0
+    t_min: 0.0
+    t_max: 1.0
+  ig:
+    scale: 0.0
+    t_min: 0.0
+    t_max: 1.0
+
+dataset:
+  target: 'blip3o'
+  type: 'wds'
+  data_dir: "data/blip3o-256"
+  split: ["journeydb", "long-caption", "short-caption"]
+  condition_type: 'text'
+  shared_tmpdir: "~/tmp"
+
+training:
+  epochs: 20
+  virtual_epoch_steps: 10000
+  global_batch_size: 1024
+  grad_accum_steps: 1
+  ema_decay: 0.9995
+  num_workers: 4
+  log_interval: 100
+  checkpoint_interval: 1
+  sample_every: 5000
+  clip_grad: 1.0
+  global_seed: 42
+  optimizer:
+    type: gmuon
+    lr: 2.0e-4
+    momentum: 0.95
+    nesterov: true
+    ns_coefficients_preset: POLAR_EXPRESS_COEFFICIENTS
+    ns_use_kernels: false
+    weight_decay: 0.0
+  scheduler:
+    type: linear
+    warmup_epochs: 5
+    decay_end_epoch: 15
+    base_lr: 2.0e-4
+    final_lr: 2.0e-5
+    warmup_from_zero: false
+  image_size: 256
+
+eval:
+  eval_interval: 10000
+  eval_model: false
+  eval_dir: results/stage2/eval
+  datasets:
+    geneval:
+      type: 'hf'
+      data_dir: './data'
+      split: 'val'
+      condition_type: 'text'
+      metrics: ['geneval']
+    dpgbench:
+      type: 'hf'
+      data_dir: './data'
+      split: 'val'
+      condition_type: 'text'
+      metrics: ['dpgbench']
+
+misc:
+  latent_size: [1024, 16, 16]
+  num_classes: 1
+  time_dist_shift_dim: 262144
+  time_dist_shift_base: 4096

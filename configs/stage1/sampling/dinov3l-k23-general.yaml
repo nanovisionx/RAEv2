@@ -1,0 +1,36 @@
+stage_1:
+  target: stage1.RAE
+  params:
+    encoder_name: dinov3mls-vit-l16[layers=1.2.3.4.5.6.7.8.9.10.11.12.13.14.15.16.17.18.19.20.21.22.23]
+    resolution: 256
+    decoder_config_path: configs/decoder/ViTXL
+    pretrained_decoder_path: pretrained_models/stage1/general/dinov3l-k23/decoder.pt
+    normalization_stat_path: pretrained_models/stage1/general/dinov3l-k23/stats.pt
+    noise_tau: 0.0
+
+# Used only by offline_eval_stage1.py; sample.py ignores everything below.
+training:
+  global_batch_size: 256
+  num_workers: 1
+  image_size: 256
+
+eval:
+  eval_dir: results/stage1/eval
+  datasets:
+    imagenet:
+      type: hf
+      data_dir: ./data/imagenet-256
+      split: val
+      condition_type: label
+      reference_npz: data/imagenet-256/imagenet-256-val.npz
+      metrics: [psnr, ssim, lpips, rfid]
+    rendertext:
+      target: arrow-eval
+      data_dir: ./data/rendertext-256/val
+      reference_npz: ./data/rendertext-256/val.npz
+      metrics: [psnr, ssim, lpips, rfid]
+    flux-synthetic:
+      target: arrow-eval
+      data_dir: ./data/scale-rae-flux-synthetic-256/val
+      reference_npz: ./data/scale-rae-flux-synthetic-256/val.npz
+      metrics: [psnr, ssim, lpips, rfid]

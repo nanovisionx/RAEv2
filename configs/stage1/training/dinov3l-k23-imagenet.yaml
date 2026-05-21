@@ -1,0 +1,81 @@
+stage_1:
+  target: stage1.RAE
+  params:
+    encoder_name: dinov3mls-vit-l16[layers=1.2.3.4.5.6.7.8.9.10.11.12.13.14.15.16.17.18.19.20.21.22.23]
+    resolution: 256
+    decoder_config_path: configs/decoder/ViTXL
+    noise_tau: 0.8
+
+dataset:
+  target: imagenet
+  type: hf
+  data_dir: ./data/imagenet-256
+  split: train
+  condition_type: label
+
+training:
+  epochs: 16
+  ema_decay: 0.9978
+  global_batch_size: 512
+  num_workers: 4
+  clip_grad: 0.0
+  log_interval: 100
+  checkpoint_interval: 1
+  sample_every: 2500
+  image_size: 256
+  optimizer:
+    lr: 2.0e-4
+    betas: [0.9, 0.95]
+    weight_decay: 0.0
+  scheduler:
+    type: cosine
+    warmup_epochs: 1
+    decay_end_epoch: 16
+    base_lr: 2.0e-4
+    final_lr: 2.0e-5
+    warmup_from_zero: true
+
+eval:
+  eval_interval: 2500
+  eval_model: false
+  eval_dir: results/stage1/eval
+  datasets:
+    imagenet:
+      type: hf
+      data_dir: ./data/imagenet-256
+      split: val
+      condition_type: label
+      reference_npz: data/imagenet-256/imagenet-256-val.npz
+      metrics: [psnr, ssim, rfid]
+
+gan:
+  arch:
+    dino_ckpt_path: pretrained_models/encoders/dino/dino_vit_small_patch8_224.pth
+    ks: 9
+    norm_type: bn
+    using_spec_norm: true
+    recipe: S_8
+  optimizer:
+    lr: 2.0e-4
+    betas: [0.9, 0.95]
+    weight_decay: 0.0
+  scheduler:
+    type: cosine
+    warmup_epochs: 1
+    decay_end_epoch: 16
+    base_lr: 2.0e-4
+    final_lr: 2.0e-5
+    warmup_from_zero: true
+  augment:
+    prob: 1.0
+    cutout: 0.0
+  loss:
+    disc_loss: hinge
+    gen_loss: vanilla
+    disc_weight: 0.75
+    perceptual_weight: 1.0
+    disc_start: 8
+    disc_upd_start: 6
+    lpips_start: 0
+    max_d_weight: 10000.0
+    disc_updates: 1
